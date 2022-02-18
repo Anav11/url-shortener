@@ -13,10 +13,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			fmt.Fprint(w, templates.Form)
 		} else {
-			initialUrl := util.GetUrl(r.URL.Path, r.Host)
-			w.Header().Set("Location", initialUrl)
+			initialURL := util.GetURL(r.URL.Path, r.Host)
+			w.Header().Set("Location", initialURL)
 			w.WriteHeader(307)
-			fmt.Fprint(w, initialUrl)
+			fmt.Fprint(w, initialURL)
 		}
 	case http.MethodPost:
 		url := r.FormValue("url")
@@ -26,9 +26,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		shortUrl := util.UrlShortener(url, r.Host)
+		shortURL := util.URLShortener(url, r.Host)
 		w.WriteHeader(201)
-		fmt.Fprint(w, shortUrl)
+		fmt.Fprint(w, shortURL)
 	default:
 		http.Error(w, "Bad Request", 400)
 	}
