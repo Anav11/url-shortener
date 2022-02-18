@@ -20,12 +20,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 		url := r.FormValue("url")
-
-		if len(url) == 0 {
-			http.Error(w, "Empty url", 400)
-			return
-		}
-
 		shortURL := util.URLShortener(url, r.Host)
 		w.WriteHeader(201)
 		fmt.Fprint(w, shortURL)
