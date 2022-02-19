@@ -21,7 +21,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		url := r.FormValue("url")
 		shortPath := util.URLShortener(url)
-		shortURL := fmt.Sprintf("%s/%s", r.Host, shortPath)
+		shortURL := fmt.Sprintf("http://%s/%s", r.Host, shortPath)
 
 		w.WriteHeader(201)
 		fmt.Fprint(w, shortURL)
