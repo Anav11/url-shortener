@@ -15,7 +15,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			initialURL := util.GetURL(r.URL.Path)
 			w.Header().Set("Location", initialURL)
-			w.WriteHeader(307)
+			w.WriteHeader(http.StatusTemporaryRedirect)
 			fmt.Fprint(w, initialURL)
 		}
 	case http.MethodPost:
