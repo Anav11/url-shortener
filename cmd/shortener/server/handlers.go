@@ -13,14 +13,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			fmt.Fprint(w, templates.Form)
 		} else {
-			initialURL := util.GetURL(r.URL.Path, r.Host)
+			initialURL := util.GetURL(r.URL.Path)
 			w.Header().Set("Location", initialURL)
 			w.WriteHeader(307)
 			fmt.Fprint(w, initialURL)
 		}
 	case http.MethodPost:
 		url := r.FormValue("url")
-		shortURL := util.URLShortener(url, r.Host)
+		shortPath := util.URLShortener(url)
+		shortURL := fmt.Sprintf("%s/%s", r.Host, shortPath)
+
 		w.WriteHeader(201)
 		fmt.Fprint(w, shortURL)
 	default:

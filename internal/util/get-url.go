@@ -1,8 +1,10 @@
 package util
 
-import "fmt"
+import (
+	"strings"
+)
 
-func GetURL(url string, host string) string{
-	_url := fmt.Sprintf("%s%s", host, url)
-	return db[_url]
+func GetURL(url string) string{
+	url = strings.TrimPrefix(url, "/")
+	return db[url]
 }
