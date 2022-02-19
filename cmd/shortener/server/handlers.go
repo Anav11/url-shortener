@@ -23,8 +23,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		shortPath := util.URLShortener(url)
 		shortURL := fmt.Sprintf("http://%s/%s", r.Host, shortPath)
 
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(201)
-		fmt.Fprint(w, shortURL)
+		w.Write([]byte(shortURL))
 	default:
 		http.Error(w, "Bad Request", 400)
 	}
