@@ -16,7 +16,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			initialURL := util.GetURL(r.URL.Path)
 			w.Header().Set("Location", initialURL)
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			fmt.Fprint(w, initialURL)
 		}
 	case http.MethodPost:
 		url := r.FormValue("url")
