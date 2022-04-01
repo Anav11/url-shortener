@@ -47,6 +47,7 @@ func TestGetHandler(t *testing.T) {
 			h := http.HandlerFunc(GetHandler)
 			h.ServeHTTP(w, request)
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, testCase.want.code, result.StatusCode)
 		})
@@ -78,6 +79,7 @@ func TestPostHandler(t *testing.T) {
 			h := http.HandlerFunc(PostHandler)
 			h.ServeHTTP(w, request)
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, testCase.want.code, result.StatusCode)
 			assert.Equal(t, testCase.want.contentType, result.Header.Get("Content-Type"))
