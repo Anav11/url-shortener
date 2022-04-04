@@ -1,4 +1,4 @@
-package handlers
+package main
 
 import (
 	"github.com/Anav11/url-shortener/internal/app"
