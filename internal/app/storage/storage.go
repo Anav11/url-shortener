@@ -1,5 +1,10 @@
 package storage
 
+type Repository interface {
+	Add(ID string, URL string)
+	Get(ID string) string
+}
+
 type Storage struct {
 	List map[string]string
 }

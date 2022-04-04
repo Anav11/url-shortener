@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/Anav11/url-shortener/internal/app"
+	"github.com/Anav11/url-shortener/internal/app/router"
 	"github.com/Anav11/url-shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -10,8 +12,13 @@ import (
 )
 
 func TestGetHandler(t *testing.T) {
-	URLStorage := storage.GetInstance()
-	URLStorage.Add("test-id", "https://ya.ru")
+	c := app.Config{
+		Host: "http://localhost",
+		Port: 8080,
+	}
+
+	s := storage.GetInstance()
+	s.Add("test-id", "https://ya.ru")
 
 	type want struct {
 		code int
@@ -36,25 +43,31 @@ func TestGetHandler(t *testing.T) {
 			request: "/test-id-fail",
 			want:    want{
 				http.StatusNotFound,
-				"text/plain",
+				"text/plain; charset=utf-8",
 			},
 		},
 	}
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodGet, testCase.request, nil)
+			r := router.Router(c, s)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(GetHandler)
-			h.ServeHTTP(w, request)
-			result := w.Result()
-			defer result.Body.Close()
+			req, err  := http.NewRequest(http.MethodGet, testCase.request, nil)
+			r.ServeHTTP(w, req)
 
-			assert.Equal(t, testCase.want.code, result.StatusCode)
+			assert.Equal(t, testCase.want.contentType, w.Header().Get("Content-Type"))
+			assert.Equal(t, testCase.want.code, w.Code)
+			assert.NoError(t, err)
 		})
 	}
 }
 
 func TestPostHandler(t *testing.T) {
+	c := app.Config{
+		Host: "http://localhost",
+		Port: 8080,
+	}
+	s := storage.GetInstance()
+
 	type want struct {
 		code int
 		contentType string
@@ -74,15 +87,14 @@ func TestPostHandler(t *testing.T) {
 	}
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://ya.ru"))
+			r := router.Router(c, s)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(PostHandler)
-			h.ServeHTTP(w, request)
-			result := w.Result()
-			defer result.Body.Close()
+			req, err  := http.NewRequest(http.MethodPost, "/", strings.NewReader("https://ya.ru"))
+			r.ServeHTTP(w, req)
 
-			assert.Equal(t, testCase.want.code, result.StatusCode)
-			assert.Equal(t, testCase.want.contentType, result.Header.Get("Content-Type"))
+			assert.Equal(t, testCase.want.code, w.Code)
+			assert.Equal(t, testCase.want.contentType, w.Header().Get("Content-Type"))
+			assert.NoError(t, err)
 		})
 	}
 }

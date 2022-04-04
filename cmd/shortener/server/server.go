@@ -1,15 +1,19 @@
 package server
 
 import (
-	"github.com/Anav11/url-shortener/internal/app/handlers"
-	"log"
-	"net/http"
+	"fmt"
+	"github.com/Anav11/url-shortener/internal/app"
+	"github.com/Anav11/url-shortener/internal/app/router"
+	"github.com/Anav11/url-shortener/internal/app/storage"
 )
 
-func Start(port string) {
-	http.HandleFunc("/", handlers.MainHandler)
+func Start(port int) {
+	c := app.Config{
+		Host: "http://localhost",
+		Port: port,
+	}
+	s := storage.GetInstance()
+	r := router.Router(c, s)
 
-	log.Println("Server started on port", port)
-
-	http.ListenAndServe(port, nil)
+	r.Run(fmt.Sprintf(":%d", c.Port))
 }

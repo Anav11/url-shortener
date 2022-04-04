@@ -2,61 +2,48 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/Anav11/url-shortener/internal/app"
 	"github.com/Anav11/url-shortener/internal/app/storage"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
-	"strings"
 )
 
-var URLStorage = storage.GetInstance()
-
-func MainHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		GetHandler(w, r)
-	case http.MethodPost:
-		PostHandler(w, r)
-	default:
-		makeResponse(w, "", http.StatusMethodNotAllowed)
-	}
+type Handler struct {
+	Config  app.Config
+	Storage storage.Repository
 }
 
-func GetHandler(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, "/")
-
-	if r.URL.Path == "/" {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+func (h Handler) GetHandler(ctx *gin.Context) {
+	ID := ctx.Param("ID")
+	if ID == "" {
+		ctx.String(http.StatusBadRequest, "")
 		return
 	}
 
-	initialURL := URLStorage.Get(path)
-
+	initialURL := h.Storage.Get(ID)
 	if initialURL == "" {
-		makeResponse(w, "", http.StatusNotFound)
+		ctx.String(http.StatusNotFound, "")
 		return
 	}
 
-	w.Header().Set("Location", initialURL)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	ctx.Header("Content-Type", "text/plain")
+	ctx.Redirect(http.StatusTemporaryRedirect, initialURL)
 }
 
-func PostHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
+func (h Handler) PostHandler(ctx *gin.Context) {
+	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusInternalServerError)
+		ctx.String(http.StatusInternalServerError, "")
 		return
 	}
 
-	id := uuid.New().String()
-	URLStorage.Add(id, string(body))
+	ID := uuid.New().String()
+	h.Storage.Add(ID, string(body))
 
-	shortURL := fmt.Sprintf("http://%s/%s", r.Host, id)
-	makeResponse(w, shortURL, http.StatusCreated)
-}
+	shortURL := fmt.Sprintf("%s:%d/%s", h.Config.Host, h.Config.Port, ID)
 
-func makeResponse(w http.ResponseWriter, response string, httpStatusCode int) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(httpStatusCode)
-	w.Write([]byte(response))
+	ctx.Header("Content-Type", "text/plain")
+	ctx.String(http.StatusCreated, "%s", shortURL)
 }
