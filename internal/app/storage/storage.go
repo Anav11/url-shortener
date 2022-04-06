@@ -31,6 +31,6 @@ func (s Storage) Get(ID string) (string, error) {
 	return URL, nil
 }
 
-func GetStorage() *Storage {
+func ConstructStorage() *Storage {
 	return &Storage{make(map[string]string)}
 }
