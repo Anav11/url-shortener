@@ -24,8 +24,8 @@ func (h Handler) GetHandler(ctx *gin.Context) {
 		return
 	}
 
-	initialURL := h.Storage.Get(ID)
-	if initialURL == "" {
+	initialURL, err := h.Storage.Get(ID)
+	if err != nil {
 		ctx.String(http.StatusNotFound, "")
 		return
 	}

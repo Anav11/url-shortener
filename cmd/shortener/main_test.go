@@ -19,7 +19,7 @@ func TestGetHandler(t *testing.T) {
 		Port: 8080,
 	}
 
-	s := storage.GetInstance()
+	s := storage.GetStorage()
 	s.Add("test-id", "https://ya.ru")
 
 	type want struct {
@@ -68,7 +68,7 @@ func TestPostHandler(t *testing.T) {
 		Host: "http://localhost",
 		Port: 8080,
 	}
-	s := storage.GetInstance()
+	s := storage.GetStorage()
 
 	type want struct {
 		code int

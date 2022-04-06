@@ -1,28 +1,36 @@
 package storage
 
+import "fmt"
+
 type Repository interface {
-	Add(ID string, URL string)
-	Get(ID string) string
+	Add(ID string, URL string) error
+	Get(ID string) (string, error)
 }
 
 type Storage struct {
-	List map[string]string
+	URLsMap map[string]string
 }
 
-func (s Storage) Add(ID string, URL string) {
-	s.List[ID] = URL
-}
-
-func (s Storage) Get(ID string) string {
-	return s.List[ID]
-}
-
-var instance *Storage = nil
-
-func GetInstance() *Storage {
-	if instance == nil {
-		instance = &Storage{make(map[string]string)}
+func (s Storage) Add(ID string, URL string) error {
+	if existingURL, _ := s.Get(ID); existingURL != "" {
+		return fmt.Errorf(`ID=%s; URL already exists`, ID)
 	}
 
-	return instance
+	s.URLsMap[ID] = URL
+
+	return nil
+}
+
+func (s Storage) Get(ID string) (string, error) {
+	URL := s.URLsMap[ID]
+
+	if URL == "" {
+		return "", fmt.Errorf("URL not found")
+	}
+
+	return URL, nil
+}
+
+func GetStorage() *Storage {
+	return &Storage{make(map[string]string)}
 }
