@@ -12,7 +12,7 @@ func Start(port int) {
 		Host: "http://localhost",
 		Port: port,
 	}
-	s := storage.GetStorage()
+	s := storage.ConstructStorage()
 	r := router.Router(c, s)
 
 	r.Run(fmt.Sprintf(":%d", c.Port))
