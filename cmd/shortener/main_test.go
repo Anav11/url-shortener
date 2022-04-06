@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/Anav11/url-shortener/internal/app"
-	"github.com/Anav11/url-shortener/internal/app/router"
-	"github.com/Anav11/url-shortener/internal/app/storage"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/Anav11/url-shortener/internal/app"
+	"github.com/Anav11/url-shortener/internal/app/router"
+	"github.com/Anav11/url-shortener/internal/app/storage"
 )
 
 func TestGetHandler(t *testing.T) {

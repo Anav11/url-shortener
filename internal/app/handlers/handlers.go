@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/Anav11/url-shortener/internal/app"
-	"github.com/Anav11/url-shortener/internal/app/storage"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+
+	"github.com/Anav11/url-shortener/internal/app"
+	"github.com/Anav11/url-shortener/internal/app/storage"
 )
 
 type Handler struct {
