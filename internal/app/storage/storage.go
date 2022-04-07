@@ -1,6 +1,9 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type Repository interface {
 	Add(ID string, URL string) error
@@ -9,10 +12,14 @@ type Repository interface {
 
 type Storage struct {
 	URLsMap map[string]string
+	mutex   sync.RWMutex
 }
 
 func (s Storage) Add(ID string, URL string) error {
-	if existingURL, _ := s.Get(ID); existingURL != "" {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if s.URLsMap[ID] != "" {
 		return fmt.Errorf(`ID=%s; URL already exists`, ID)
 	}
 
@@ -22,8 +29,10 @@ func (s Storage) Add(ID string, URL string) error {
 }
 
 func (s Storage) Get(ID string) (string, error) {
-	URL := s.URLsMap[ID]
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
+	URL := s.URLsMap[ID]
 	if URL == "" {
 		return "", fmt.Errorf("URL not found")
 	}
@@ -32,5 +41,5 @@ func (s Storage) Get(ID string) (string, error) {
 }
 
 func ConstructStorage() *Storage {
-	return &Storage{make(map[string]string)}
+	return &Storage{make(map[string]string), sync.RWMutex{}}
 }
