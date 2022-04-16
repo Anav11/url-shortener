@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Anav11/url-shortener/internal/app"
+	"github.com/Anav11/url-shortener/internal/app/handlers"
 	"github.com/Anav11/url-shortener/internal/app/router"
 	"github.com/Anav11/url-shortener/internal/app/storage"
 )
@@ -92,6 +95,45 @@ func TestPostHandler(t *testing.T) {
 			r := router.Router(c, s)
 			w := httptest.NewRecorder()
 			req, err  := http.NewRequest(http.MethodPost, "/", strings.NewReader("https://ya.ru"))
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, testCase.want.code, w.Code)
+			assert.Equal(t, testCase.want.contentType, w.Header().Get("Content-Type"))
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestPostJSONHandler(t *testing.T) {
+	c := app.Config{
+		Host: "http://localhost",
+		Port: 8080,
+	}
+	s := storage.ConstructStorage()
+
+	type want struct {
+		code int
+		contentType string
+	}
+
+	tests := []struct {
+		name    string
+		want    want
+	}{
+		{
+			name:    "URL JSON added",
+			want:    want{
+				http.StatusCreated,
+				"application/json; charset=utf-8",
+			},
+		},
+	}
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := router.Router(c, s)
+			w := httptest.NewRecorder()
+			reqBody, _ := json.Marshal(handlers.ShortenerRequestJSON{URL: "https://ya.ru"})
+			req, err  := http.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(reqBody))
 			r.ServeHTTP(w, req)
 
 			assert.Equal(t, testCase.want.code, w.Code)

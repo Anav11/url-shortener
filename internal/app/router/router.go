@@ -16,6 +16,7 @@ func Router(c app.Config, s *storage.Storage) *gin.Engine {
 	}
 	r.GET("/:ID", h.GetHandler)
 	r.POST("/", h.PostHandler)
+	r.POST("/api/shorten", h.PostHandlerJSON)
 
 	return r
 }
