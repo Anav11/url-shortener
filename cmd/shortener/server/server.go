@@ -20,13 +20,13 @@ func Start() {
 		return
 	}
 
-	s := storage.ConstructStorage(c.FileStoragePath)
-	r := router.Router(c, s)
-
 	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "a localhost:8080")
 	flag.StringVar(&c.BaseURL, "b", c.BaseURL, "b http://localhost:8080")
 	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "f ./urls_db.csv")
 	flag.Parse()
+
+	s := storage.ConstructStorage(c.FileStoragePath)
+	r := router.Router(c, s)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
