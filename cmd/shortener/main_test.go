@@ -23,7 +23,7 @@ func TestGetHandler(t *testing.T) {
 		return
 	}
 
-	s := storage.ConstructStorage()
+	s := storage.ConstructStorage(c.FileStoragePath)
 	s.Add("test-id", "https://ya.ru")
 
 	type want struct {
@@ -73,7 +73,7 @@ func TestPostHandler(t *testing.T) {
 		return
 	}
 
-	s := storage.ConstructStorage()
+	s := storage.ConstructStorage(c.FileStoragePath)
 
 	type want struct {
 		code int
@@ -112,7 +112,7 @@ func TestPostJSONHandler(t *testing.T) {
 		return
 	}
 
-	s := storage.ConstructStorage()
+	s := storage.ConstructStorage(c.FileStoragePath)
 
 	type want struct {
 		code int
