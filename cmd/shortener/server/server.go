@@ -1,6 +1,7 @@
 package server
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,6 +19,11 @@ func Start() {
 	if err := env.Parse(&c); err != nil {
 		return
 	}
+
+	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "a localhost:8080")
+	flag.StringVar(&c.BaseURL, "b", c.BaseURL, "b http://localhost:8080")
+	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "f ./urls_db.csv")
+	flag.Parse()
 
 	s := storage.ConstructStorage(c.FileStoragePath)
 	r := router.Router(c, s)
