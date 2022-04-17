@@ -3,5 +3,5 @@ package main
 import "github.com/Anav11/url-shortener/cmd/shortener/server"
 
 func main() {
-	server.Start(8080)
+	server.Start()
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Anav11/url-shortener/internal/app"
@@ -17,9 +18,9 @@ import (
 )
 
 func TestGetHandler(t *testing.T) {
-	c := app.Config{
-		Host: "http://localhost",
-		Port: 8080,
+	c := app.Config{}
+	if err := env.Parse(&c); err != nil {
+		return
 	}
 
 	s := storage.ConstructStorage()
@@ -67,10 +68,11 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestPostHandler(t *testing.T) {
-	c := app.Config{
-		Host: "http://localhost",
-		Port: 8080,
+	c := app.Config{}
+	if err := env.Parse(&c); err != nil {
+		return
 	}
+
 	s := storage.ConstructStorage()
 
 	type want struct {
@@ -105,10 +107,11 @@ func TestPostHandler(t *testing.T) {
 }
 
 func TestPostJSONHandler(t *testing.T) {
-	c := app.Config{
-		Host: "http://localhost",
-		Port: 8080,
+	c := app.Config{}
+	if err := env.Parse(&c); err != nil {
+		return
 	}
+
 	s := storage.ConstructStorage()
 
 	type want struct {

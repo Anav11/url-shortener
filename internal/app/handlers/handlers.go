@@ -53,7 +53,7 @@ func (h Handler) PostHandler(ctx *gin.Context) {
 	ID := uuid.New().String()
 	h.Storage.Add(ID, string(body))
 
-	shortURL := fmt.Sprintf("%s:%d/%s", h.Config.Host, h.Config.Port, ID)
+	shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, ID)
 
 	ctx.Header("Content-Type", "text/plain")
 	ctx.String(http.StatusCreated, "%s", shortURL)
@@ -72,7 +72,7 @@ func (h Handler) PostHandlerJSON(ctx *gin.Context) {
 		return
 	}
 
-	shortURL := fmt.Sprintf("%s:%d/%s", h.Config.Host, h.Config.Port, ID)
+	shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, ID)
 	res := ShortenerResponseJSON{Result: shortURL}
 
 	ctx.JSON(http.StatusCreated, res)
