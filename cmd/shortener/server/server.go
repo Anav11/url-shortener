@@ -1,6 +1,11 @@
 package server
 
 import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/caarlos0/env/v6"
 
 	"github.com/Anav11/url-shortener/internal/app"
@@ -14,8 +19,19 @@ func Start() {
 		return
 	}
 
-	s := storage.ConstructStorage()
+	s := storage.ConstructStorage(c.FileStoragePath)
 	r := router.Router(c, s)
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		if err := storage.DestructStorage(c.FileStoragePath, s); err != nil {
+			fmt.Errorf("ERROR: %s", err)
+		}
+		os.Exit(0)
+	}()
 
 	if err := r.Run(c.ServerAddress); err != nil {
 		panic(err)
