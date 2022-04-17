@@ -12,10 +12,10 @@ type Repository interface {
 
 type Storage struct {
 	URLsMap map[string]string
-	mutex   *sync.RWMutex
+	mutex   sync.RWMutex
 }
 
-func (s Storage) Add(ID string, URL string) error {
+func (s *Storage) Add(ID string, URL string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -28,7 +28,7 @@ func (s Storage) Add(ID string, URL string) error {
 	return nil
 }
 
-func (s Storage) Get(ID string) (string, error) {
+func (s *Storage) Get(ID string) (string, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -41,5 +41,5 @@ func (s Storage) Get(ID string) (string, error) {
 }
 
 func ConstructStorage() *Storage {
-	return &Storage{make(map[string]string), &sync.RWMutex{}}
+	return &Storage{make(map[string]string), sync.RWMutex{}}
 }
