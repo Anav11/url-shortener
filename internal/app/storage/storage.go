@@ -47,14 +47,14 @@ func ConstructStorage(fileStoragePath string) *Storage {
 
 	file, err := os.OpenFile(fileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
 	if err != nil {
-		fmt.Errorf("OpenFile error; %s", err)
+		fmt.Printf("OpenFile error; %s", err)
 		return s
 	}
 	defer file.Close()
 
 	records, err := csv.NewReader(file).ReadAll()
 	if err != nil {
-		fmt.Errorf("ReadAll error; %s", err)
+		fmt.Printf("ReadAll error; %s", err)
 		return s
 	}
 

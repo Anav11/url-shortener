@@ -28,7 +28,7 @@ func Start() {
 	go func() {
 		<-sigs
 		if err := storage.DestructStorage(c.FileStoragePath, s); err != nil {
-			fmt.Errorf("ERROR: %s", err)
+			fmt.Printf("ERROR: %s", err)
 		}
 		os.Exit(0)
 	}()
