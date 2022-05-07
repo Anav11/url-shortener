@@ -24,7 +24,7 @@ func TestGetHandler(t *testing.T) {
 	}
 
 	s := storage.ConstructStorage(c.FileStoragePath)
-	s.Add("test-id", "https://ya.ru")
+	s.AddURL("test-id", "https://ya.ru", "")
 
 	type want struct {
 		code int
