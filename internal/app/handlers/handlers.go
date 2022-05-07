@@ -87,7 +87,7 @@ func (h Handler) PostHandlerJSON(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, res)
 }
 
-func (h Handler) GetUserUrlsHandler(ctx *gin.Context) {
+func (h Handler) GetUserURLsHandler(ctx *gin.Context) {
 	userID, err := ctx.Cookie("session")
 	if err != nil {
 		ctx.String(http.StatusUnprocessableEntity, "cookies were not set")
@@ -99,14 +99,14 @@ func (h Handler) GetUserUrlsHandler(ctx *gin.Context) {
 		ctx.String(http.StatusInternalServerError, "")
 	}
 
-	userShortUrlIDs := h.Storage.GetUserShortUrlIDs(userDecryptID)
-	if len(userShortUrlIDs) == 0 {
+	userShortURLIDs := h.Storage.GetUserShortURLIDs(userDecryptID)
+	if len(userShortURLIDs) == 0 {
 		ctx.JSON(http.StatusNoContent, "{}")
 		return
 	}
 
 	var userURLsJSON []UserURLsJSON
-	for _, shortID := range userShortUrlIDs {
+	for _, shortID := range userShortURLIDs {
 		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shortID)
 		URL, _ := h.Storage.GetURL(shortID)
 		userURLsJSON = append(userURLsJSON, UserURLsJSON{shortURL, URL})
@@ -115,9 +115,9 @@ func (h Handler) GetUserUrlsHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userURLsJSON)
 }
 
-func createURL(h Handler, ctx *gin.Context, URL string) (shortUrlID string, error error) {
+func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
 	userEncryptID, err := ctx.Cookie("session")
-	shortUrlID = uuid.New().String()
+	shortURLID = uuid.New().String()
 
 	if userEncryptID != "" && err == nil {
 		userDecryptID, err := utils.Decrypt(userEncryptID, h.Config.SecretKey)
@@ -125,16 +125,16 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortUrlID string, erro
 			return "", err
 		}
 
-		if err := h.Storage.AddURL(shortUrlID, URL, userDecryptID); err != nil {
+		if err := h.Storage.AddURL(shortURLID, URL, userDecryptID); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}
 	} else {
-		if err := h.Storage.AddURL(shortUrlID, URL, ""); err != nil {
+		if err := h.Storage.AddURL(shortURLID, URL, ""); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}
 	}
 
-	return shortUrlID, nil
+	return shortURLID, nil
 }

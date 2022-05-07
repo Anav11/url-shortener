@@ -13,7 +13,7 @@ type UserURLs = map[string][]string
 type Repository interface {
 	AddURL(ID string, URL string, userID string) error
 	GetURL(ID string) (string, error)
-	GetUserShortUrlIDs(userID string) []string
+	GetUserShortURLIDs(userID string) []string
 }
 
 type Storage struct {
@@ -48,7 +48,7 @@ func (s *Storage) GetURL(ID string) (string, error) {
 	return URL, nil
 }
 
-func (s *Storage) GetUserShortUrlIDs(userID string) []string {
+func (s *Storage) GetUserShortURLIDs(userID string) []string {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
