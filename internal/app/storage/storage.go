@@ -7,17 +7,22 @@ import (
 	"sync"
 )
 
+type URLsMap = map[string]string
+type UserURLs = map[string][]string
+
 type Repository interface {
-	Add(ID string, URL string) error
-	Get(ID string) (string, error)
+	AddURL(ID string, URL string, userID string) error
+	GetURL(ID string) (string, error)
+	GetUserShortURLIDs(userID string) []string
 }
 
 type Storage struct {
-	URLsMap map[string]string
+	URLsMap URLsMap
+	UserURLs UserURLs
 	mutex   sync.RWMutex
 }
 
-func (s *Storage) Add(ID string, URL string) error {
+func (s *Storage) AddURL(ID string, URL string, userID string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -26,11 +31,12 @@ func (s *Storage) Add(ID string, URL string) error {
 	}
 
 	s.URLsMap[ID] = URL
+	s.UserURLs[userID] = append(s.UserURLs[userID], ID)
 
 	return nil
 }
 
-func (s *Storage) Get(ID string) (string, error) {
+func (s *Storage) GetURL(ID string) (string, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -42,8 +48,15 @@ func (s *Storage) Get(ID string) (string, error) {
 	return URL, nil
 }
 
+func (s *Storage) GetUserShortURLIDs(userID string) []string {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	return s.UserURLs[userID]
+}
+
 func ConstructStorage(fileStoragePath string) *Storage {
-	s := &Storage{make(map[string]string), sync.RWMutex{}}
+	s := &Storage{make(URLsMap), make(UserURLs), sync.RWMutex{}}
 
 	file, err := os.OpenFile(fileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
 	if err != nil {
@@ -75,6 +88,10 @@ func DestructStorage(fileStoragePath string, s *Storage) error {
 	writer := csv.NewWriter(file)
 
 	var records [][]string
+	for user, shortID := range s.UserURLs {
+		fmt.Println("user", user)
+		fmt.Println("shortID", shortID)
+	}
 	for ID, URL := range s.URLsMap {
 		records = append(records, []string{ID, URL})
 	}
