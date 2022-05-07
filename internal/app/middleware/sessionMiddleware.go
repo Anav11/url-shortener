@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,7 +22,10 @@ func SessionMiddleware(conf app.Config) gin.HandlerFunc {
 				ctx.String(http.StatusInternalServerError, err.Error())
 				return
 			}
-			ctx.SetCookie("session", encryptedId, 3600, "/", conf.ServerAddress, false, false)
+			expiration := time.Now().Add(365 * 24 * time.Hour)
+			cookie := http.Cookie{Name: "session", Value: url.QueryEscape(encryptedId), Expires: expiration}
+
+			http.SetCookie(ctx.Writer, &cookie)
 		}
 
 		ctx.Next()

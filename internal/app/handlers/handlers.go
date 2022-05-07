@@ -97,6 +97,7 @@ func (h Handler) GetUserURLsHandler(ctx *gin.Context) {
 	userDecryptID, err := utils.Decrypt(userID, h.Config.SecretKey)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "")
+		return
 	}
 
 	userShortURLIDs := h.Storage.GetUserShortURLIDs(userDecryptID)
