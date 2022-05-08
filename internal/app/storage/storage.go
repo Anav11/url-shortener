@@ -122,7 +122,10 @@ func DestructStorage(fileStoragePath string, s *Storage) error {
 	}
 
 	writer.Flush()
-	s.DB.Close(context.Background())
+
+	if s.DB != nil {
+		s.DB.Close(context.Background())
+	}
 
 	return nil
 }
