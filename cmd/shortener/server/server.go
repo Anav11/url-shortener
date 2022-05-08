@@ -23,9 +23,10 @@ func Start() {
 	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "a localhost:8080")
 	flag.StringVar(&c.BaseURL, "b", c.BaseURL, "b http://localhost:8080")
 	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "f ./urls_db.csv")
+	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "d postgres://username:password@host:port/database")
 	flag.Parse()
 
-	s := storage.ConstructStorage(c.FileStoragePath)
+	s := storage.ConstructStorage(c)
 	r := router.Router(c, s)
 
 	sigs := make(chan os.Signal, 1)

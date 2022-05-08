@@ -1,10 +1,15 @@
 package storage
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/jackc/pgx/v4"
+
+	"github.com/Anav11/url-shortener/internal/app"
 )
 
 type URLsMap = map[string]string
@@ -14,11 +19,13 @@ type Repository interface {
 	AddURL(ID string, URL string, userID string) error
 	GetURL(ID string) (string, error)
 	GetUserShortURLIDs(userID string) []string
+	GetDBConn() *pgx.Conn
 }
 
 type Storage struct {
 	URLsMap URLsMap
 	UserURLs UserURLs
+	DB *pgx.Conn
 	mutex   sync.RWMutex
 }
 
@@ -55,10 +62,22 @@ func (s *Storage) GetUserShortURLIDs(userID string) []string {
 	return s.UserURLs[userID]
 }
 
-func ConstructStorage(fileStoragePath string) *Storage {
-	s := &Storage{make(URLsMap), make(UserURLs), sync.RWMutex{}}
+func (s *Storage) GetDBConn() *pgx.Conn {
+	return s.DB
+}
 
-	file, err := os.OpenFile(fileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
+func ConstructStorage(conf app.Config) *Storage {
+	s := &Storage{make(URLsMap), make(UserURLs), nil, sync.RWMutex{}}
+
+	conn, err := pgx.Connect(context.Background(), conf.DatabaseDSN)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	} else {
+		s.DB = conn
+	}
+
+	file, err := os.OpenFile(conf.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
 	if err != nil {
 		fmt.Printf("OpenFile error; %s", err)
 		return s
@@ -101,6 +120,7 @@ func DestructStorage(fileStoragePath string, s *Storage) error {
 	}
 
 	writer.Flush()
+	s.DB.Close(context.Background())
 
 	return nil
 }
