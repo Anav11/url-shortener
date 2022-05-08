@@ -69,12 +69,14 @@ func (s *Storage) GetDBConn() *pgx.Conn {
 func ConstructStorage(conf app.Config) *Storage {
 	s := &Storage{make(URLsMap), make(UserURLs), nil, sync.RWMutex{}}
 
-	conn, err := pgx.Connect(context.Background(), conf.DatabaseDSN)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
-	} else {
-		s.DB = conn
+	if conf.DatabaseDSN != "" {
+		conn, err := pgx.Connect(context.Background(), conf.DatabaseDSN)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+			os.Exit(1)
+		} else {
+			s.DB = conn
+		}
 	}
 
 	file, err := os.OpenFile(conf.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
