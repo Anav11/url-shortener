@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -114,6 +116,19 @@ func (h Handler) GetUserURLsHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, userURLsJSON)
+}
+
+func (h Handler) PingDBHandler(ctx *gin.Context) {
+	timoutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := h.Storage.GetDBConn().Ping(timoutCtx)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.String(http.StatusOK, "")
 }
 
 func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
