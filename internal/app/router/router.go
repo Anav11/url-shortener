@@ -19,10 +19,12 @@ func Router(c app.Config, s storage.Repository) *gin.Engine {
 		Storage: s,
 	}
 	r.GET("/:ID", h.GetHandler)
-	r.POST("/", h.PostHandler)
-	r.POST("/api/shorten", h.PostHandlerJSON)
 	r.GET("/api/user/urls", h.GetUserURLsHandler)
 	r.GET("/ping", h.PingDBHandler)
+
+	r.POST("/", h.PostHandler)
+	r.POST("/api/shorten", h.PostHandlerJSON)
+	r.POST("/api/shorten/batch", h.PostBatchHandler)
 
 	return r
 }

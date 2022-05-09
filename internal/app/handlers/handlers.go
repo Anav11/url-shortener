@@ -19,19 +19,6 @@ type Handler struct {
 	Storage storage.Repository
 }
 
-type ShortenerResponseJSON struct {
-	Result string `json:"result"`
-}
-
-type ShortenerRequestJSON struct {
-	URL string `json:"url"`
-}
-
-type UserURLsJSON struct {
-	ShortURL	string `json:"short_url"`
-	OriginalURL	string `json:"original_url"`
-}
-
 func (h Handler) GetHandler(ctx *gin.Context) {
 	ID := ctx.Param("ID")
 	if ID == "" {
@@ -125,6 +112,38 @@ func (h Handler) PingDBHandler(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "database is running")
 }
 
+func (h Handler) PostBatchHandler(ctx *gin.Context) {
+	var batchURLs BatchURLs
+	userID, _ := ctx.Cookie("session")
+
+	if err := json.NewDecoder(ctx.Request.Body).Decode(&batchURLs); err != nil {
+		ctx.String(http.StatusInternalServerError, "batch decoding error")
+		return
+	}
+
+	shortURLs := make([]storage.UserShortURL, 0)
+
+	for _, bu := range batchURLs {
+		shortURLs = append(shortURLs, storage.UserShortURL{ID: bu.CorrelationID, OriginalURL: bu.OriginalURL, UserID: userID})
+	}
+
+	if err := h.Storage.AddBatchURL(shortURLs); err != nil {
+		ctx.String(http.StatusInternalServerError, "batch add error")
+		return
+	}
+
+	batchShortURL := make([]BatchShortURL, 0)
+
+	for _, su := range shortURLs {
+		batchShortURL = append(batchShortURL, BatchShortURL{
+			CorrelationID: su.ID,
+			ShortURL: fmt.Sprintf("%s/%s", h.Config.BaseURL, su.ID),
+		})
+	}
+
+	ctx.JSON(http.StatusCreated, batchShortURL)
+}
+
 func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
 	userEncryptID, err := ctx.Cookie("session")
 	shortURLID = uuid.New().String()
@@ -135,12 +154,12 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, erro
 			return "", err
 		}
 
-		if err := h.Storage.AddURL(shortURLID, URL, userDecryptID); err != nil {
+		if err := h.Storage.AddURL(storage.UserShortURL{ID: shortURLID,  OriginalURL: URL, UserID: userDecryptID}); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}
 	} else {
-		if err := h.Storage.AddURL(shortURLID, URL, ""); err != nil {
+		if err := h.Storage.AddURL(storage.UserShortURL{ID: shortURLID, OriginalURL: URL, UserID: ""}); err != nil {
 			ctx.String(http.StatusBadRequest, "")
 			return
 		}
