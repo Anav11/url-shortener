@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -102,33 +100,29 @@ func (h Handler) GetUserURLsHandler(ctx *gin.Context) {
 		return
 	}
 
-	userShortURLIDs := h.Storage.GetUserShortURLIDs(userDecryptID)
-	if len(userShortURLIDs) == 0 {
+	userShortURLs := h.Storage.GetUserShortURLs(userDecryptID)
+	if len(userShortURLs) == 0 {
 		ctx.JSON(http.StatusNoContent, "{}")
 		return
 	}
 
 	var userURLsJSON []UserURLsJSON
-	for _, shortID := range userShortURLIDs {
-		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, shortID)
-		URL, _ := h.Storage.GetURL(shortID)
-		userURLsJSON = append(userURLsJSON, UserURLsJSON{shortURL, URL})
+	for _, userShorted := range userShortURLs {
+		shortURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, userShorted.ID)
+		userURLsJSON = append(userURLsJSON, UserURLsJSON{shortURL, userShorted.OriginalURL})
 	}
 
 	ctx.JSON(http.StatusOK, userURLsJSON)
 }
 
 func (h Handler) PingDBHandler(ctx *gin.Context) {
-	timoutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	err := h.Storage.GetDBConn().Ping(timoutCtx)
+	err := h.Storage.Ping()
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.String(http.StatusOK, "")
+	ctx.String(http.StatusOK, "database is running")
 }
 
 func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {

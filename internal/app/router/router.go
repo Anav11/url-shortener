@@ -10,7 +10,7 @@ import (
 	"github.com/Anav11/url-shortener/internal/app/storage"
 )
 
-func Router(c app.Config, s *storage.Storage) *gin.Engine {
+func Router(c app.Config, s storage.Repository) *gin.Engine {
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.BestSpeed, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)))
 	r.Use(middleware.SessionMiddleware(c))
