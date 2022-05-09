@@ -9,8 +9,8 @@ import (
 	"github.com/Anav11/url-shortener/internal/app"
 )
 
-func (dbs *DatabaseStorage) AddURL(ID string, URL string, userID string) error {
-	_, err := dbs.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", ID, URL, userID)
+func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
+	_, err := dbs.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", usu.ID, usu.OriginalURL, usu.UserID)
 
 	return err
 }
@@ -43,6 +43,25 @@ func (dbs *DatabaseStorage) GetUserShortURLs(userID string) []UserShortURL {
 	}
 
 	return shortURLs
+}
+
+func (dbs *DatabaseStorage) AddBatchURL(shortURLs []UserShortURL) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	stmt, err := dbs.DB.Prepare(ctx, "addBatch", "INSERT INTO urls VALUES ($1, $2, $3)")
+	if err != nil {
+		return err
+	}
+
+	for _, su := range shortURLs {
+		_, err := dbs.DB.Exec(ctx, stmt.SQL, su.ID, su.OriginalURL, "")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func ConstructDatabaseStorage(conf app.Config) (Repository, error) {

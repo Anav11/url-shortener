@@ -24,7 +24,7 @@ func TestGetHandler(t *testing.T) {
 	}
 
 	s := storage.ConstructStorage(c)
-	s.AddURL("test-id", "https://ya.ru", "")
+	s.AddURL(storage.UserShortURL{ID: "test-id", OriginalURL: "https://ya.ru", UserID: ""})
 
 	type want struct {
 		code int

@@ -16,10 +16,11 @@ type UserShortURL struct {
 }
 
 type Repository interface {
-	AddURL(ID string, URL string, userID string) error
-	GetURL(ID string) (string, error)
-	GetUserShortURLs(userID string) []UserShortURL
-	DestructStorage(conf app.Config) error
+	AddURL(UserShortURL) error
+	GetURL(string) (string, error)
+	GetUserShortURLs(string) []UserShortURL
+	DestructStorage(app.Config) error
+	AddBatchURL([]UserShortURL) error
 	Ping() error
 }
 
