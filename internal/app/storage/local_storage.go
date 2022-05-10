@@ -23,6 +23,11 @@ func (ls *LocalStorage) AddURL(usu UserShortURL) error {
 		return fmt.Errorf(`ID=%s; URL already exists`, usu.ID)
 	}
 
+	existID, _ := ls.GetShortByOriginal(usu.OriginalURL)
+	if existID != "" {
+		return &URLDuplicateError{URL: usu.OriginalURL}
+	}
+
 	ls.URLsMap[usu.ID] = usu.OriginalURL
 	ls.UserURLs[usu.UserID] = append(ls.UserURLs[usu.UserID], usu.ID)
 
@@ -65,6 +70,16 @@ func (ls *LocalStorage) AddBatchURL(URLs []UserShortURL) error {
 		}
 
 		return nil
+}
+
+func (ls *LocalStorage) GetShortByOriginal(originalURL string) (string, error) {
+	for ID, URL := range ls.URLsMap {
+		if URL == originalURL {
+			return ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("URL not found")
 }
 
 func ConstructLocalStorage(conf app.Config) Repository {

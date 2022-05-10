@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,8 +44,17 @@ func (h Handler) PostHandler(ctx *gin.Context) {
 		return
 	}
 
-	ID, err := createURL(h, ctx, string(body))
+	URL := string(body)
+	ID, err := createURL(h, ctx, URL)
 	if err != nil {
+		var ude *storage.URLDuplicateError
+		if errors.As(err, &ude) {
+			existID, _ := h.Storage.GetShortByOriginal(URL)
+			existURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, existID)
+			ctx.String(http.StatusConflict, existURL)
+			return
+		}
+
 		ctx.String(http.StatusInternalServerError, "")
 		return
 	}
@@ -64,6 +74,16 @@ func (h Handler) PostHandlerJSON(ctx *gin.Context) {
 
 	ID, err := createURL(h, ctx, req.URL)
 	if err != nil {
+		var ude *storage.URLDuplicateError
+		if errors.As(err, &ude) {
+			existID, _ := h.Storage.GetShortByOriginal(req.URL)
+			existURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, existID)
+			res := ShortenerResponseJSON{Result: existURL}
+
+			ctx.JSON(http.StatusConflict, res)
+			return
+		}
+
 		ctx.String(http.StatusInternalServerError, "")
 		return
 	}
@@ -154,14 +174,12 @@ func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, erro
 			return "", err
 		}
 
-		if err := h.Storage.AddURL(storage.UserShortURL{ID: shortURLID,  OriginalURL: URL, UserID: userDecryptID}); err != nil {
-			ctx.String(http.StatusBadRequest, "")
-			return
+		if err := h.Storage.AddURL(storage.UserShortURL{ID: shortURLID, OriginalURL: URL, UserID: userDecryptID}); err != nil {
+			return "", err
 		}
 	} else {
 		if err := h.Storage.AddURL(storage.UserShortURL{ID: shortURLID, OriginalURL: URL, UserID: ""}); err != nil {
-			ctx.String(http.StatusBadRequest, "")
-			return
+			return "", err
 		}
 	}
 
