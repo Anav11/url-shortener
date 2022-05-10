@@ -24,7 +24,7 @@ func TestGetHandler(t *testing.T) {
 	}
 
 	s := storage.ConstructStorage(c)
-	s.AddURL(storage.UserShortURL{ID: "test-id", OriginalURL: "https://ya.ru", UserID: ""})
+	s.AddURL(storage.UserShortURL{ID: "test-id", OriginalURL: "https://test1.ru", UserID: ""})
 
 	type want struct {
 		code int
@@ -96,7 +96,7 @@ func TestPostHandler(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := router.Router(c, s)
 			w := httptest.NewRecorder()
-			req, err  := http.NewRequest(http.MethodPost, "/", strings.NewReader("https://ya.ru"))
+			req, err  := http.NewRequest(http.MethodPost, "/", strings.NewReader("https://test2.ru"))
 			r.ServeHTTP(w, req)
 
 			assert.Equal(t, testCase.want.code, w.Code)
@@ -135,7 +135,7 @@ func TestPostJSONHandler(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := router.Router(c, s)
 			w := httptest.NewRecorder()
-			reqBody, _ := json.Marshal(handlers.ShortenerRequestJSON{URL: "https://ya.ru"})
+			reqBody, _ := json.Marshal(handlers.ShortenerRequestJSON{URL: "https://test3.ru"})
 			req, err  := http.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(reqBody))
 			r.ServeHTTP(w, req)
 

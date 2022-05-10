@@ -2,15 +2,35 @@ package storage
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4"
 
 	"github.com/Anav11/url-shortener/internal/app"
 )
 
+type URLDuplicateError struct {
+	URL string
+}
+
+func (err *URLDuplicateError) Error() string {
+	return fmt.Sprintf("URL %s - already exists.", err.URL)
+}
+
 func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
 	_, err := dbs.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", usu.ID, usu.OriginalURL, usu.UserID)
+
+	var pgError *pgconn.PgError
+
+	if errors.As(err, &pgError) {
+		if pgError.Code == pgerrcode.UniqueViolation {
+			return &URLDuplicateError{URL: usu.OriginalURL}
+		}
+	}
 
 	return err
 }
@@ -64,6 +84,15 @@ func (dbs *DatabaseStorage) AddBatchURL(shortURLs []UserShortURL) error {
 	return nil
 }
 
+func (dbs *DatabaseStorage) GetShortByOriginal(originalURL string) (string, error) {
+	var ID string
+	if err := dbs.DB.QueryRow(context.Background(), "SELECT url_id FROM urls WHERE original_url = $1", originalURL).Scan(&ID); err != nil {
+		return "", err
+	}
+
+	return ID, nil
+}
+
 func ConstructDatabaseStorage(conf app.Config) (Repository, error) {
 	conn, err := pgx.Connect(context.Background(), conf.DatabaseDSN)
 	if err != nil {
@@ -72,14 +101,13 @@ func ConstructDatabaseStorage(conf app.Config) (Repository, error) {
 
 	dbs := &DatabaseStorage{ DB: conn }
 
-	const CreateTable = `
+	const createTable = `
 		CREATE TABLE IF NOT EXISTS urls (
 			url_id varchar(36) NOT NULL UNIQUE PRIMARY KEY,
-			original_url varchar(255),
+			original_url varchar(255) UNIQUE,
 			user_id varchar(36)
 		)`
-	_, err = dbs.DB.Exec(context.Background(), CreateTable)
-	if err != nil {
+	if _, err = dbs.DB.Exec(context.Background(), createTable); err != nil {
 		return nil, err
 	}
 

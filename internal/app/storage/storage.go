@@ -21,6 +21,7 @@ type Repository interface {
 	GetUserShortURLs(string) []UserShortURL
 	DestructStorage(app.Config) error
 	AddBatchURL([]UserShortURL) error
+	GetShortByOriginal(string) (string, error)
 	Ping() error
 }
 
