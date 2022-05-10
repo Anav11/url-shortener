@@ -78,7 +78,9 @@ func (h Handler) PostHandlerJSON(ctx *gin.Context) {
 		if errors.As(err, &ude) {
 			existID, _ := h.Storage.GetShortByOriginal(req.URL)
 			existURL := fmt.Sprintf("%s/%s", h.Config.BaseURL, existID)
-			ctx.String(http.StatusConflict, existURL)
+			res := ShortenerResponseJSON{Result: existURL}
+
+			ctx.JSON(http.StatusConflict, res)
 			return
 		}
 
