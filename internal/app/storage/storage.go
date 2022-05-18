@@ -15,30 +15,30 @@ type UserShortURL struct {
 	UserID      string
 }
 
+type DatabaseStorage struct {
+	DB *pgx.Conn
+}
+
 type Repository interface {
 	AddURL(UserShortURL) error
 	GetURL(string) (string, error)
 	GetUserShortURLs(string) []UserShortURL
-	DestructStorage(app.Config) error
+	Destruct(app.Config) error
 	AddBatchURL([]UserShortURL) error
 	GetShortByOriginal(string) (string, error)
 	Ping() error
 }
 
-type DatabaseStorage struct {
-	DB *pgx.Conn
-}
-
-func ConstructStorage(conf app.Config) Repository {
-	if conf.DatabaseDSN != "" {
-		dbStore, err  := ConstructDatabaseStorage(conf)
+func New(cfg app.Config) Repository {
+	if cfg.DatabaseDSN != "" {
+		dbStore, err  := constructDatabaseStorage(cfg)
 		if err != nil {
-			fmt.Println("ConstructDatabaseStorage ERROR: ", err)
-			return ConstructLocalStorage(conf)
+			fmt.Println("constructLocalStorage ERROR: ", err)
+			return constructLocalStorage(cfg)
 		}
 
 		return dbStore
 	}
 
-	return ConstructLocalStorage(conf)
+	return constructLocalStorage(cfg)
 }

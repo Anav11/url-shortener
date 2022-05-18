@@ -62,14 +62,14 @@ func (ls *LocalStorage) GetUserShortURLs(userID string) []UserShortURL {
 }
 
 func (ls *LocalStorage) AddBatchURL(URLs []UserShortURL) error {
-		for _, URL := range URLs {
-			err := ls.AddURL(URL)
-			if err != nil {
+	for _, URL := range URLs {
+		err := ls.AddURL(URL)
+		if err != nil {
 				return err
 			}
-		}
+	}
 
-		return nil
+	return nil
 }
 
 func (ls *LocalStorage) GetShortByOriginal(originalURL string) (string, error) {
@@ -82,10 +82,10 @@ func (ls *LocalStorage) GetShortByOriginal(originalURL string) (string, error) {
 	return "", fmt.Errorf("URL not found")
 }
 
-func ConstructLocalStorage(conf app.Config) Repository {
+func constructLocalStorage(cfg app.Config) Repository {
 	ls := &LocalStorage{make(URLsMap), make(UserURLs), sync.RWMutex{}}
 
-	file, err := os.OpenFile(conf.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
+	file, err := os.OpenFile(cfg.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0664)
 	if err != nil {
 		fmt.Printf("OpenFile error; %s", err)
 		return ls
@@ -105,8 +105,8 @@ func ConstructLocalStorage(conf app.Config) Repository {
 	return ls
 }
 
-func (ls *LocalStorage) DestructStorage(conf app.Config) error {
-	file, err := os.OpenFile(conf.FileStoragePath, os.O_WRONLY, 0664)
+func (ls *LocalStorage) Destruct(cfg app.Config) error {
+	file, err := os.OpenFile(cfg.FileStoragePath, os.O_WRONLY, 0664)
 	if err != nil {
 		return fmt.Errorf("OpenFile error; %s", err)
 	}

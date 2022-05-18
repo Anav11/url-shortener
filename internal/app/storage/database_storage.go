@@ -93,8 +93,8 @@ func (dbs *DatabaseStorage) GetShortByOriginal(originalURL string) (string, erro
 	return ID, nil
 }
 
-func ConstructDatabaseStorage(conf app.Config) (Repository, error) {
-	conn, err := pgx.Connect(context.Background(), conf.DatabaseDSN)
+func constructDatabaseStorage(cfg app.Config) (Repository, error) {
+	conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func ConstructDatabaseStorage(conf app.Config) (Repository, error) {
 	return dbs, nil
 }
 
-func (dbs DatabaseStorage) DestructStorage(conf app.Config) error {
+func (dbs DatabaseStorage) Destruct(cfg app.Config) error {
 	err := dbs.DB.Close(context.Background())
 
 	return err
