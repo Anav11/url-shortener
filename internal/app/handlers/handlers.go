@@ -23,7 +23,7 @@ type Handler struct {
 func (h Handler) GetHandler(ctx *gin.Context) {
 	ID := ctx.Param("ID")
 	if ID == "" {
-		ctx.String(http.StatusBadRequest, "")
+		ctx.String(http.StatusBadRequest, "empty ID")
 		return
 	}
 
