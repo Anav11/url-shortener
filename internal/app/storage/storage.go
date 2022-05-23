@@ -26,6 +26,7 @@ type Repository interface {
 	Destruct(app.Config) error
 	AddBatchURL([]UserShortURL) error
 	GetShortByOriginal(string) (string, error)
+	DeleteUserURLs([]string, string) error
 	Ping() error
 }
 

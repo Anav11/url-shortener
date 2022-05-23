@@ -82,6 +82,10 @@ func (ls *LocalStorage) GetShortByOriginal(originalURL string) (string, error) {
 	return "", fmt.Errorf("URL not found")
 }
 
+func (ls *LocalStorage) DeleteUserURLs(IDs []string, userID string) error {
+	return nil
+}
+
 func constructLocalStorage(cfg app.Config) Repository {
 	ls := &LocalStorage{make(URLsMap), make(UserURLs), sync.RWMutex{}}
 
