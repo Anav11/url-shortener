@@ -46,7 +46,7 @@ func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
 func (dbs *DatabaseStorage) GetURL(ID string) (string, error) {
 	row := ""
 	isDeleted := false
-	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url FROM urls WHERE url_id = $1 AND is_deleted = false", ID).Scan(&row, isDeleted)
+	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url, is_deleted FROM urls WHERE url_id = $1 AND is_deleted = false", ID).Scan(&row, &isDeleted)
 	if err != nil {
 		return "", err
 	}

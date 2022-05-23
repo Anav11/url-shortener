@@ -28,7 +28,7 @@ func (h Handler) GetHandler(ctx *gin.Context) {
 	}
 
 	initialURL, err := h.Storage.GetURL(ID)
-	if err != nil || initialURL == "" {
+	if err != nil {
 		var due *storage.DeletedURLError
 		if errors.As(err, &due) {
 			ctx.String(http.StatusGone, "")
