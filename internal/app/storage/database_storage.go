@@ -21,6 +21,14 @@ func (err *URLDuplicateError) Error() string {
 	return fmt.Sprintf("URL %s - already exists.", err.URL)
 }
 
+type DeletedURLError struct {
+	ID string
+}
+
+func (due *DeletedURLError) Error() string {
+	return fmt.Sprintf("ID: %s - was deleted", due.ID)
+}
+
 func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
 	_, err := dbs.DB.Exec(context.Background(), "INSERT INTO urls VALUES ($1, $2, $3)", usu.ID, usu.OriginalURL, usu.UserID)
 
@@ -37,9 +45,14 @@ func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
 
 func (dbs *DatabaseStorage) GetURL(ID string) (string, error) {
 	row := ""
-	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url FROM urls WHERE url_id = $1 AND is_deleted = false", ID).Scan(&row)
+	isDeleted := false
+	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url FROM urls WHERE url_id = $1 AND is_deleted = false", ID).Scan(&row, isDeleted)
 	if err != nil {
 		return "", err
+	}
+
+	if isDeleted {
+		return "", &DeletedURLError{ID}
 	}
 
 	return row, nil
@@ -95,6 +108,7 @@ func (dbs *DatabaseStorage) GetShortByOriginal(originalURL string) (string, erro
 
 func (dbs *DatabaseStorage) DeleteUserURLs(IDs []string, userID string) error {
 	_, err := dbs.DB.Exec(context.Background(), "UPDATE urls SET is_deleted = true WHERE user_id = $1 AND url_id = ANY($2)", userID, IDs)
+
 	return err
 }
 
