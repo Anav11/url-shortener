@@ -32,6 +32,7 @@ func (h Handler) GetHandler(ctx *gin.Context) {
 		var due *storage.DeletedURLError
 		if errors.As(err, &due) {
 			ctx.String(http.StatusGone, "")
+			return
 		}
 
 		ctx.String(http.StatusNotFound, "")
