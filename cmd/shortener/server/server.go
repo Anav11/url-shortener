@@ -15,31 +15,32 @@ import (
 )
 
 func Start() {
-	c := app.Config{}
-	if err := env.Parse(&c); err != nil {
+	cfg := app.Config{}
+	if err := env.Parse(&cfg); err != nil {
 		return
 	}
 
-	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "a localhost:8080")
-	flag.StringVar(&c.BaseURL, "b", c.BaseURL, "b http://localhost:8080")
-	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "f ./urls_db.csv")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "a localhost:8080")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "b http://localhost:8080")
+	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "f ./urls_db.csv")
+	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "d postgres://username:password@host:port/database")
 	flag.Parse()
 
-	s := storage.ConstructStorage(c.FileStoragePath)
-	r := router.Router(c, s)
+	s := storage.New(cfg)
+	r := router.Router(cfg, s)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		<-sigs
-		if err := storage.DestructStorage(c.FileStoragePath, s); err != nil {
+		if err := s.Destruct(cfg); err != nil {
 			fmt.Printf("ERROR: %s", err)
 		}
 		os.Exit(0)
 	}()
 
-	if err := r.Run(c.ServerAddress); err != nil {
+	if err := r.Run(cfg.ServerAddress); err != nil {
 		panic(err)
 	}
 }
