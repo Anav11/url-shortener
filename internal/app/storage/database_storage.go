@@ -37,7 +37,7 @@ func (dbs *DatabaseStorage) AddURL(usu UserShortURL) error {
 
 func (dbs *DatabaseStorage) GetURL(ID string) (string, error) {
 	row := ""
-	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url FROM urls WHERE url_id = $1", ID).Scan(&row)
+	err := dbs.DB.QueryRow(context.Background(), "SELECT original_url FROM urls WHERE url_id = $1 AND is_deleted = false", ID).Scan(&row)
 	if err != nil {
 		return "", err
 	}
@@ -47,7 +47,7 @@ func (dbs *DatabaseStorage) GetURL(ID string) (string, error) {
 
 func (dbs *DatabaseStorage) GetUserShortURLs(userID string) []UserShortURL {
 	shortURLs := make([]UserShortURL, 0)
-	rows, err := dbs.DB.Query(context.Background(), "SELECT url_id, original_url FROM urls WHERE user_id = $1", userID)
+	rows, err := dbs.DB.Query(context.Background(), "SELECT url_id, original_url FROM urls WHERE user_id = $1 AND is_deleted = false", userID)
 	if err != nil {
 		return shortURLs
 	}
@@ -93,6 +93,11 @@ func (dbs *DatabaseStorage) GetShortByOriginal(originalURL string) (string, erro
 	return ID, nil
 }
 
+func (dbs *DatabaseStorage) DeleteUserURLs(IDs []string, userID string) error {
+	_, err := dbs.DB.Exec(context.Background(), "UPDATE urls SET is_deleted = true WHERE user_id = $1 AND url_id = ANY($2)", userID, IDs)
+	return err
+}
+
 func constructDatabaseStorage(cfg app.Config) (Repository, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
 	if err != nil {
@@ -105,7 +110,8 @@ func constructDatabaseStorage(cfg app.Config) (Repository, error) {
 		CREATE TABLE IF NOT EXISTS urls (
 			url_id varchar(36) NOT NULL UNIQUE PRIMARY KEY,
 			original_url varchar(255) UNIQUE,
-			user_id varchar(36)
+			user_id varchar(36),
+			is_deleted boolean DEFAULT false
 		)`
 	if _, err = dbs.DB.Exec(context.Background(), createTable); err != nil {
 		return nil, err
