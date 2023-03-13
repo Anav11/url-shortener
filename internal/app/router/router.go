@@ -26,5 +26,7 @@ func Router(c app.Config, s storage.Repository) *gin.Engine {
 	r.POST("/api/shorten", h.PostHandlerJSON)
 	r.POST("/api/shorten/batch", h.PostBatchHandler)
 
+	r.DELETE("/api/user/urls", h.DeleteUserURLsHandler)
+
 	return r
 }

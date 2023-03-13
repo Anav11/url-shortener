@@ -29,6 +29,12 @@ func (h Handler) GetHandler(ctx *gin.Context) {
 
 	initialURL, err := h.Storage.GetURL(ID)
 	if err != nil {
+		var due *storage.DeletedURLError
+		if errors.As(err, &due) {
+			ctx.String(http.StatusGone, "")
+			return
+		}
+
 		ctx.String(http.StatusNotFound, "")
 		return
 	}
@@ -162,6 +168,25 @@ func (h Handler) PostBatchHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, batchShortURL)
+}
+
+func (h Handler) DeleteUserURLsHandler(ctx *gin.Context) {
+	var IDs []string
+	if err := json.NewDecoder(ctx.Request.Body).Decode(&IDs); err != nil {
+		return
+	}
+
+	userID, _ := ctx.Cookie("session")
+	userDecryptID, err := utils.Decrypt(userID, h.Config.SecretKey)
+	if err != nil {
+		return
+	}
+
+	go func() {
+		h.Storage.DeleteUserURLs(IDs, userDecryptID)
+	}()
+
+	ctx.String(http.StatusAccepted, "")
 }
 
 func createURL(h Handler, ctx *gin.Context, URL string) (shortURLID string, error error) {
